@@ -1,0 +1,70 @@
+
+
+<html>
+    <head>
+        <style>
+            table {
+                border-collapse: separate;
+                text-align: center;
+
+                border: 1px solid black;
+            }
+            thead tr{
+                background-color: aquamarine;
+                font-weight: bold;
+                font-size: large;
+                text-align: center;
+            }
+            tbody tr td{
+                border: 1px solid black;
+
+            }
+            
+
+
+        </style>
+    </head>
+    <body>
+        
+        <h1>Cafe Management System</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name : <%=name %></th>
+                    <th>Email : <%= email  %></th>
+                </tr>
+                <tr>
+                    <th>Contact Number : <%= contactNumber %></th>
+                    <th>Payment Method : <%= paymentMethod %></th>
+                </tr>
+            </thead>
+        </table>
+
+        <h2>Product Details :</h2>
+
+        <table>
+            <thead>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+            </thead>
+            <tbody>
+                <% if(productDetails.length !== 0){ %>
+                    <%  productDetails.map(product => {%>
+                    <tr>
+                        <td><%= product.name%></td>
+                        <td><%= product.category%></td>
+                        <td><%= product.quantity%></td>
+                        <td><%= product.price%></td>
+                        <td><%= product.total%></td>
+                    </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+        <h2>Total Amount : <%= totalAmount %></h2>
+        <h3>Thanks for visiting. Please visit again!</h3>
+    </body>
+</html>
