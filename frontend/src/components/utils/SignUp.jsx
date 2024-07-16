@@ -9,7 +9,7 @@ import {
   InputLabel,
   TextField,
 } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
@@ -25,19 +25,30 @@ const style = {
   p: 4,
 };
 
-export default function SignUp({ setShowDialog }) {
+export default function SignUp({setShowDialog}) {
   const [open, setOpen] = React.useState(true);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    contactNumber : "" ,
+  });
+
+  //Handle Form Submit
+  const handleFormSubmit = () => {
+    console.log(formData);
+   
+  };
+
+
+  //Hanlde modal close
   const handleClose = () => {
     setOpen(false);
-    setShowDialog(false);
+    setShowDialog("")
   };
-  const [showPassword, setShowPassword] = React.useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
-
-  const handleMouseDownPassword = (event) => {
-    event.preventDefault();
-  };
 
   return (
     <div>
@@ -62,11 +73,36 @@ export default function SignUp({ setShowDialog }) {
               sx={{ margin: "5px 0px" }}
               label="Name"
               variant="standard"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData((prevValues) => ({
+                  ...prevValues,
+                  name: e.target.value,
+                }))
+              }
+            />
+            <TextField
+              sx={{ margin: "5px 0px" }}
+              label="Contact Number"
+              type="number"
+
+              variant="standard"
+              value={formData.contactNumber}
+              onChange={(e) =>
+                setFormData((prevValues) => ({
+                  ...prevValues,
+                  contactNumber: e.target.value,
+                }))
+              }
             />
             <TextField
               sx={{ margin: "5px 0px" }}
               label="Email"
               variant="standard"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData((prevValues) => ({ ...prevValues, email: e.target.value }))
+              }
             />
             <FormControl sx={{ m: 1, width: "25ch" }} variant="standard">
               <InputLabel htmlFor="standard-adornment-password">
@@ -76,12 +112,18 @@ export default function SignUp({ setShowDialog }) {
                 id="standard-adornment-password"
                 type={showPassword ? "text" : "password"}
                 sx={{ width: "100%" }}
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData((prevValues) => ({
+                    ...prevValues,
+                    password: e.target.value,
+                  }))
+                }
                 endAdornment={
                   <InputAdornment position="end">
                     <IconButton
                       aria-label="toggle password visibility"
                       onClick={handleClickShowPassword}
-                      onMouseDown={handleMouseDownPassword}
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -89,12 +131,23 @@ export default function SignUp({ setShowDialog }) {
                 }
               />
             </FormControl>
+            <Box >
             <Button
-              sx={{ width: "40%", margin: "10px 0px" }}
+              sx={{ width: "40%", margin: "10px" , display : "inline-block" }}
               variant="contained"
+              onClick={handleFormSubmit}
             >
               SignUp
             </Button>
+            <Button
+
+              sx={{ width: "40%", margin: "10px", display : "inline-block" }}
+              variant="outlined"
+              onClick={handleClose}
+            >
+              Close
+            </Button>
+            </Box>
           </Box>
         </Box>
       </Modal>

@@ -1,3 +1,8 @@
+
+
+import React, { useState } from "react";
+
+
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import {
@@ -9,7 +14,6 @@ import {
   InputLabel,
   TextField,
 } from "@mui/material";
-import React from "react";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
@@ -25,13 +29,25 @@ const style = {
   p: 4,
 };
 
-export default function Login({ setShowLoginDialog }) {
-  const [open, setOpen] = React.useState(true);
+
+
+export default function Login({setShowDialog}) {
+  const [open, setOpen] = useState(true);
+  const [formData, setFormData] = useState({
+    email : "",
+    password : "",
+  })
+  
+  //Handling form submit
+  const handleFormSubmit = (e) => {
+    console.log(formData);
+  }
+  
   const handleClose = () => {
     setOpen(false);
-    setShowLoginDialog(false);
+    setShowDialog("")
   };
-  const [showPassword, setShowPassword] = React.useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -62,6 +78,8 @@ export default function Login({ setShowLoginDialog }) {
               sx={{ margin: "5px 0px" }}
               label="Email"
               variant="standard"
+              value={formData.email}
+              onChange={(e) => setFormData((prevValues) => ({...prevValues, email : e.target.value}) )}
             />
             <FormControl sx={{ m: 1, width: "25ch" }} variant="standard">
               <InputLabel htmlFor="standard-adornment-password">
@@ -70,6 +88,8 @@ export default function Login({ setShowLoginDialog }) {
               <Input
                 id="standard-adornment-password"
                 type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) => setFormData((prevValues) => ({...prevValues, password : e.target.value }) ) }
                 sx={{ width: "100%" }}
                 endAdornment={
                   <InputAdornment position="end">
@@ -87,6 +107,7 @@ export default function Login({ setShowLoginDialog }) {
             <Button
               sx={{ width: "40%", margin: "10px 0px" }}
               variant="contained"
+              onClick={handleFormSubmit}
             >
               Login
             </Button>

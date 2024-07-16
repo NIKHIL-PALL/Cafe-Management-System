@@ -6,38 +6,42 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
+import Container from "@mui/material/Container";    
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import StoreMallDirectoryIcon from "@mui/icons-material/StoreMallDirectory";
-;
-
-
-function Navbar({ setShowDialog , setShowLoginDialog}) {
+function Navbar({ setShowDialog, open , setOpen }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
 
-  const handleShowDialog = () => {
-    setShowDialog((prev) => !prev);
+
+  const handleShowDialog = (value) => {
+    setShowDialog(value);
   };
 
-  const handleLoginDialog = () => {
-    console.log("lfk")
-    setShowLoginDialog((prev) => !prev);
-  }
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
 
-
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
   };
-
+  const handleDrawerOpen = () => {
+    setOpen(true);
+  };
 
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
+        <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            onClick={handleDrawerOpen}
+            edge="start"
+            sx={{ mr: 2, ...(open && { display: 'none' }) }}
+          >
+            <MenuIcon />
+          </IconButton>
           <StoreMallDirectoryIcon
             sx={{ display: { xs: "none", sm: "flex" }, mr: 1 }}
           />
@@ -59,7 +63,13 @@ function Navbar({ setShowDialog , setShowLoginDialog}) {
             Cafe
           </Typography>
 
-          <Box sx={{ flexGrow: 1, display: { xs: "flex", sm: "none" }, justifyContent : "space-between" }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: { xs: "flex", sm: "none" },
+              justifyContent: "space-between",
+            }}
+          >
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -89,13 +99,28 @@ function Navbar({ setShowDialog , setShowLoginDialog}) {
               }}
             >
               <MenuItem>
-                <Typography textAlign={"center"} onClick={handleLoginDialog}>Login</Typography>
+                <Typography
+                  textAlign={"center"}
+                  onClick={(e) => handleShowDialog("login")}
+                >
+                  Login
+                </Typography>
               </MenuItem>
               <MenuItem>
-                <Typography textAlign={"center"} onClick={handleShowDialog}>SignUp</Typography>
+                <Typography
+                  textAlign={"center"}
+                  onClick={(e) => handleShowDialog("signup")}
+                >
+                  SignUp
+                </Typography>
               </MenuItem>
               <MenuItem>
-                <Typography textAlign={"center"}>Forgot Password?</Typography>
+                <Typography
+                  textAlign={"center"}
+                  onClick={(e) => handleShowDialog("forgotPassword")}
+                >
+                  Forgot Password?
+                </Typography>
               </MenuItem>
             </Menu>
           </Box>
@@ -120,26 +145,31 @@ function Navbar({ setShowDialog , setShowLoginDialog}) {
           >
             Cafe
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: "none", sm: "flex" }, justifyContent : "flex-end" }}>
-              <Button
-                onClick={handleLoginDialog}
-                
-                sx={{ my: 2, color: "white", display: "block" }}
-              >
-                Login
-              </Button>
-              <Button
-                onClick={handleShowDialog}
-                sx={{ my: 2, color: "white", display: "block" }}
-              >
-                SignUp
-              </Button>
-              <Button
-                onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: "white", display: "block" }}
-              >
-                Forgot Password?
-              </Button>
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: { xs: "none", sm: "flex" },
+              justifyContent: "flex-end",
+            }}
+          >
+            <Button
+              onClick={(e) => handleShowDialog("login")}
+              sx={{ my: 2, color: "white", display: "block" }}
+            >
+              Login
+            </Button>
+            <Button
+              onClick={(e) => handleShowDialog("signup")}
+              sx={{ my: 2, color: "white", display: "block" }}
+            >
+              SignUp
+            </Button>
+            <Button
+              onClick={(e) => handleShowDialog("forgotPassword")}
+              sx={{ my: 2, color: "white", display: "block" }}
+            >
+              Forgot Password?
+            </Button>
           </Box>
         </Toolbar>
       </Container>
