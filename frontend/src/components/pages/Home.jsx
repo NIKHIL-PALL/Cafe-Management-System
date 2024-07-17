@@ -1,19 +1,24 @@
-import React, { useState } from 'react'
-import SignUp from '../utils/SignUp';
-import Navbar from '../Navbar.jsx';
-import Login from '../utils/Login.jsx';
-import ForgotPassword from '../ForgotPassword.jsx';
-import Sidebar from '../Sidebar.jsx';
+import React, { useContext, useEffect } from 'react'
+import { verifyToken } from '../utils/auth';
+import { AuthContext } from '../../context/Auth';
+import {useNavigate} from "react-router-dom"
 function Home() {
-    const [showDialog, setShowDialog] = useState("");
-    const [open, setOpen] = useState(true);
+const auth = useContext(AuthContext);
+const navigate = useNavigate();
+  useEffect(()=> {
+    const token = localStorage.getItem('token');
+
+    if(verifyToken(token)) {
+      auth.login(token,"user");
+    }else{
+      navigate("/");
+    }
+  },[])
+  
   return (
     <React.Fragment>
-        <Navbar setShowDialog = {setShowDialog} open={open} setOpen={setOpen} />
-        {showDialog === "signup" && <SignUp setShowDialog ={setShowDialog} />}
-        {showDialog === "login"  && <Login setShowDialog={setShowDialog}  />}
-        {showDialog === "forgotPassword"  && <ForgotPassword setShowDialog={setShowDialog} />}
-        <Sidebar open={open} setOpen={setOpen} />
+      <h1>Home Page</h1>
+        
     </React.Fragment>
   )
 }

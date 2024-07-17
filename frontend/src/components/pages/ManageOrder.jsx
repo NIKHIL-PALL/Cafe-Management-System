@@ -11,7 +11,7 @@ import {
   Modal,
   Paper,
   Select,
-  Switch,
+  
   Table,
   TableBody,
   TableCell,
@@ -24,54 +24,18 @@ import {
 import React, { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import EditIcon from "@mui/icons-material/Edit";
-function createData(name, category, description, price) {
-  return { name, category, description, price };
+function createData(name, category, quantity, price) {
+  return { name, category, quantity, price };
 }
 
 const products = [
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
+  createData("Frozen yoghurt", "fruits", 4, 688),
+  createData("Frozen yoghurt", "fruits", 4, 688),
+  createData("Frozen yoghurt", "fruits", 4, 688),
+  createData("Frozen yoghurt", "fruits", 4, 688),
+  createData("Frozen yoghurt", "fruits", 4, 688),
+  createData("Frozen yoghurt", "fruits", 4, 688),
+  createData("Frozen yoghurt", "fruits", 4, 688),
 ];
 
 const style = {
@@ -90,19 +54,19 @@ function ManageOrder() {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     paymentMethod: "",
-    category : "",
-    product : ""
+    category: "",
+    product: "",
   });
 
   const handlepaymentMethodChange = (e) => {
     setFormData((prev) => ({ ...prev, paymentMethod: e.target.value }));
   };
   const handleCategoryChange = (e) => {
-    setFormData((prev) => ({...prev, category : e.target.value}))
-  }
+    setFormData((prev) => ({ ...prev, category: e.target.value }));
+  };
   const handleProductChange = (e) => {
-    setFormData((prev) => ({...prev, product : e.target.value}))
-  }
+    setFormData((prev) => ({ ...prev, product: e.target.value }));
+  };
   const handleModalOpen = () => {
     setOpen(true);
   };
@@ -265,14 +229,13 @@ function ManageOrder() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexDirection: "column",
           }}
         >
-          <Grid container spacing={2}>
-          <Grid item xs={12} md={3}>
+          <Grid container spacing={5}>
+            <Grid item xs={12} md={2}>
               <FormControl fullWidth>
-                <InputLabel id="category-label">
-                  Category
-                </InputLabel>
+                <InputLabel id="category-label">Category</InputLabel>
                 <Select
                   id="category-select"
                   labelId="category-label"
@@ -286,11 +249,9 @@ function ManageOrder() {
                 </Select>
               </FormControl>
             </Grid>
-          <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
               <FormControl fullWidth>
-                <InputLabel id="product-label">
-                  Product
-                </InputLabel>
+                <InputLabel id="product-label">Product</InputLabel>
                 <Select
                   id="product-select"
                   labelId="product-label"
@@ -304,7 +265,7 @@ function ManageOrder() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
               <TextField
                 sx={{ width: "100%" }}
                 id="outlined-basic"
@@ -312,7 +273,7 @@ function ManageOrder() {
                 variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
               <TextField
                 sx={{ width: "100%" }}
                 label="Quantity"
@@ -327,8 +288,25 @@ function ManageOrder() {
                 variant="outlined"
               />
             </Grid>
-            
           </Grid>
+          <Box
+          component={"div"}
+
+            sx={{
+              width : "100%",
+              marginTop : "10px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Button sx={{ display: "inline-block" }} variant="contained">
+              Add
+            </Button>
+            <Button variant="contained" disabled>
+              Total Amount : {99899}{" "}
+            </Button>
+          </Box>
         </CardContent>
       </Card>
       <TableContainer component={Paper}>
@@ -337,9 +315,10 @@ function ManageOrder() {
             <TableRow>
               <TableCell align="center">Name</TableCell>
               <TableCell align="center">Category</TableCell>
-              <TableCell align="center">Description</TableCell>
               <TableCell align="center">Price</TableCell>
-              <TableCell align="center">Action</TableCell>
+              <TableCell align="center">Quantity</TableCell>
+              <TableCell align="center">Total</TableCell>
+              <TableCell align="center">Delete</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -352,8 +331,11 @@ function ManageOrder() {
                   {product.name}
                 </TableCell>
                 <TableCell align="center">{product.category}</TableCell>
-                <TableCell align="center">{product.description}</TableCell>
                 <TableCell align="center">{product.price}</TableCell>
+                <TableCell align="center">{product.quantity}</TableCell>
+                <TableCell align="center">
+                  {product.price * product.quantity}
+                </TableCell>
                 <TableCell align="center">
                   <Box
                     sx={{
@@ -363,9 +345,7 @@ function ManageOrder() {
                       alignItems: "center",
                     }}
                   >
-                    <EditIcon />
                     <DeleteIcon />
-                    <Switch />
                   </Box>
                 </TableCell>
               </TableRow>

@@ -34,7 +34,7 @@ router.post("/signup", (req, res) => {
           }
         );
       } else {
-        return res.status(200).json({ message: "Email already exists." });
+        return res.status(409).json({ message: "Email already exists." });
       }
     }
   });
@@ -50,7 +50,7 @@ router.post("/login", (req, res) => {
       if (results.length <= 0 || results[0].password != user.password) {
         return res.status(401).json({ message: "Incorrect email or password" });
       } else if (results[0].status === "0") {
-        return res.status(200).json({ message: "Wait for admin approval." });
+        return res.status(401).json({ message: "Wait for admin approval." });
       } else if (results[0].password == user.password) {
         console.log(results)
         const response = {
@@ -62,7 +62,7 @@ router.post("/login", (req, res) => {
         const token = jwt.sign(response, process.env.ACCESS_TOKEN, {
           expiresIn: "8h",
         });
-        res.status(200).json({ token: token });
+        res.status(200).json({ token: token , message : "Succesfully logged in."});
       } else {
         return res.status(500).json({ message: "Something went wrong." });
       }
@@ -90,8 +90,8 @@ router.post("/forgotPassword", (req, res) => {
     } else {
       if (results.length <= 0) {
         return res
-          .status(200)
-          .json({ message: "Password has been sent to your email." });
+          .status(404)
+          .json({ message: "Email does not exist." });
       } else {
         let mailOptions = {
           from: process.env.EMAIL,

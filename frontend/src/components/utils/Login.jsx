@@ -1,11 +1,9 @@
-
-
-import React, { useState } from "react";
-
+import React, { useContext, useState } from "react";
 
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import {
+  Alert,
   Button,
   FormControl,
   IconButton,
@@ -16,6 +14,8 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import axios from "axios";
+import { AuthContext } from "../../context/Auth";
 
 const style = {
   position: "absolute",
@@ -29,23 +29,32 @@ const style = {
   p: 4,
 };
 
-
-
-export default function Login({setShowDialog}) {
+export default function Login({ setShowDialog }) {
   const [open, setOpen] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState({
-    email : "",
-    password : "",
-  })
-  
+    email: "",
+    password: "",
+  });
+  const auth = useContext(AuthContext);
+
   //Handling form submit
-  const handleFormSubmit = (e) => {
-    console.log(formData);
-  }
-  
+  const handleFormSubmit = async (e) => {
+    await axios
+      .post("http://localhost:5000/user/login", formData)
+      .then((response) => {
+        auth.setMessage(response.data.message)
+        handleClose();
+        auth.login(response.data.token, "user");
+      })
+      .catch((err) => {
+        setErrorMessage(err.response.data.message)
+      });
+  };
+
   const handleClose = () => {
     setOpen(false);
-    setShowDialog("")
+    setShowDialog("");
   };
   const [showPassword, setShowPassword] = useState(false);
 
@@ -64,6 +73,7 @@ export default function Login({setShowDialog}) {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
+       {errorMessage && <Alert severity="error" >{errorMessage}</Alert>}
           <Box
             sx={{
               display: "flex",
@@ -79,7 +89,12 @@ export default function Login({setShowDialog}) {
               label="Email"
               variant="standard"
               value={formData.email}
-              onChange={(e) => setFormData((prevValues) => ({...prevValues, email : e.target.value}) )}
+              onChange={(e) =>
+                setFormData((prevValues) => ({
+                  ...prevValues,
+                  email: e.target.value,
+                }))
+              }
             />
             <FormControl sx={{ m: 1, width: "25ch" }} variant="standard">
               <InputLabel htmlFor="standard-adornment-password">
@@ -89,7 +104,12 @@ export default function Login({setShowDialog}) {
                 id="standard-adornment-password"
                 type={showPassword ? "text" : "password"}
                 value={formData.password}
-                onChange={(e) => setFormData((prevValues) => ({...prevValues, password : e.target.value }) ) }
+                onChange={(e) =>
+                  setFormData((prevValues) => ({
+                    ...prevValues,
+                    password: e.target.value,
+                  }))
+                }
                 sx={{ width: "100%" }}
                 endAdornment={
                   <InputAdornment position="end">

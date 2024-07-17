@@ -1,6 +1,8 @@
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
+
 import {
+  Alert,
   Button,
   FormControl,
   IconButton,
@@ -9,9 +11,11 @@ import {
   InputLabel,
   TextField,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import Visibility from "@mui/icons-material/Visibility";
+import axios from "axios";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { AuthContext } from "../../context/Auth";
 
 const style = {
   position: "absolute",
@@ -25,26 +29,40 @@ const style = {
   p: 4,
 };
 
-export default function SignUp({setShowDialog}) {
+export default function SignUp({ setShowDialog }) {
   const [open, setOpen] = React.useState(true);
+  const auth = useContext(AuthContext)
+  const [errorMessage, setErrorMessage] = useState("");
+
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    contactNumber : "" ,
+    contactNumber: "",
   });
 
   //Handle Form Submit
-  const handleFormSubmit = () => {
-    console.log(formData);
-   
+  const handleFormSubmit = async () => {
+    await axios
+      .post("http://localhost:5000/user/signup", formData)
+      .then((response) => {
+        console.log(response.data);
+        auth.setMessage(response.data.message);
+        handleClose();
+        
+      })
+      .catch((err) => {
+          
+          setErrorMessage(err.response.data.message);
+        
+      });
   };
-
 
   //Hanlde modal close
   const handleClose = () => {
     setOpen(false);
-    setShowDialog("")
+    setShowDialog("");
   };
   const [showPassword, setShowPassword] = useState(false);
 
@@ -59,6 +77,8 @@ export default function SignUp({setShowDialog}) {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
+        {errorMessage && <Alert severity="error" >{errorMessage}</Alert>}
+
           <Box
             sx={{
               display: "flex",
@@ -68,6 +88,8 @@ export default function SignUp({setShowDialog}) {
               borderRadius: "17px",
             }}
           >
+           
+
             <h1>SignUp</h1>
             <TextField
               sx={{ margin: "5px 0px" }}
@@ -85,7 +107,6 @@ export default function SignUp({setShowDialog}) {
               sx={{ margin: "5px 0px" }}
               label="Contact Number"
               type="number"
-
               variant="standard"
               value={formData.contactNumber}
               onChange={(e) =>
@@ -101,7 +122,10 @@ export default function SignUp({setShowDialog}) {
               variant="standard"
               value={formData.email}
               onChange={(e) =>
-                setFormData((prevValues) => ({ ...prevValues, email: e.target.value }))
+                setFormData((prevValues) => ({
+                  ...prevValues,
+                  email: e.target.value,
+                }))
               }
             />
             <FormControl sx={{ m: 1, width: "25ch" }} variant="standard">
@@ -131,22 +155,21 @@ export default function SignUp({setShowDialog}) {
                 }
               />
             </FormControl>
-            <Box >
-            <Button
-              sx={{ width: "40%", margin: "10px" , display : "inline-block" }}
-              variant="contained"
-              onClick={handleFormSubmit}
-            >
-              SignUp
-            </Button>
-            <Button
-
-              sx={{ width: "40%", margin: "10px", display : "inline-block" }}
-              variant="outlined"
-              onClick={handleClose}
-            >
-              Close
-            </Button>
+            <Box>
+              <Button
+                sx={{ width: "40%", margin: "10px", display: "inline-block" }}
+                variant="contained"
+                onClick={handleFormSubmit}
+              >
+                SignUp
+              </Button>
+              <Button
+                sx={{ width: "40%", margin: "10px", display: "inline-block" }}
+                variant="outlined"
+                onClick={handleClose}
+              >
+                Close
+              </Button>
             </Box>
           </Box>
         </Box>
