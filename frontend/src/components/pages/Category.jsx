@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   CardContent,
+  IconButton,
   Modal,
   Paper,
   Table,
@@ -14,22 +15,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
-
+import React, { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../context/Auth.jsx";
 import EditIcon from "@mui/icons-material/Edit";
-function createData(name, action) {
-  return { name, action };
-}
-
-const rows = [
-  createData("Frozen yoghurt", "action"),
-  createData("Ice cream sandwich", "action"),
-  createData("Eclair", "action"),
-  createData("Ice cream sandwich", "action"),
-  createData("Frozen yoghurt", "action"),
-  createData("Eclair", "action"),
-];
-
+import axios from "axios";
 const style = {
   position: "absolute",
   top: "50%",
@@ -44,15 +33,78 @@ const style = {
 
 function Category() {
   const [open, setOpen] = useState(false);
-  const handleModalOpen = () => {
+  const [categories, setCategories] = useState([]);
+  const [isAddModal, setIsAddModal] = useState(true);
+  const [formData, setFormData] = useState({
+    id: "",
+    name: "",
+  });
+  const auth = useContext(AuthContext);
+
+  const handleModelOpen = () => {
     setOpen(true);
-  };
-  const handleAddCategory = () => {
-    console.log("handling adding...")
+    setIsAddModal(true);
   }
+
+  const handleEditCategoryClick = (id, name)=> {
+    setFormData({id, name});
+    setIsAddModal(false);
+    setOpen(true);
+  }
+  const AddCategory = async () => {
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.userId}`,
+    };
+    if (isAddModal) {
+      await axios
+        .post("http://localhost:5000/category/add", formData, { headers })
+        .then((response) => {
+          console.log(response);
+          auth.setMessage(response.data.message);
+          fetchCategories();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } else {
+      await axios
+        .patch("http://localhost:5000/category/update", formData, { headers })
+        .then((respone) => {
+          console.log(respone);
+          auth.setMessage(respone.data.message);
+          fetchCategories();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+    handleClose();
+  };
   const handleClose = () => {
+    setFormData({ id: "", name: "" });
     setOpen(false);
   };
+  async function fetchCategories() {
+    const headers = {
+      "Content-Type ": "application/json",
+      Authorization: `Bearer ${auth.userId}`,
+    };
+    await axios
+      .get("http://localhost:5000/category/get", { headers })
+      .then((response) => {
+        console.log(response);
+        setFormData({ name: "" });
+        setCategories(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
   return (
     <React.Fragment>
       <Modal
@@ -64,18 +116,37 @@ function Category() {
         <Box sx={style}>
           <Box sx={{ margin: "20px " }}>
             <Typography id="modal-modal-title" variant="h6" component="h2">
-              Add Category
+              {isAddModal ? "Add " : "Update "} Category
             </Typography>
             <TextField
-            sx={{width : "100%", margin : "15px 0px"}}
+              sx={{ width: "100%", margin: "15px 0px" }}
               id="outlined-basic"
               label="Category Name"
               variant="outlined"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  name: e.target.value,
+                }))
+              }
             />
           </Box>
           <Box sx={{ margin: "5px" }}>
-            <Button sx={{margin : "0px 10px"}} onClick={handleAddCategory} variant="contained">Add</Button>
-            <Button sx={{margin : "0px 10px"}} onClick={handleClose}  variant="outlined">Close</Button>
+            <Button
+              sx={{ margin: "0px 10px" }}
+              onClick={AddCategory}
+              variant="contained"
+            >
+              {isAddModal ? "Add " : "Update "}
+            </Button>
+            <Button
+              sx={{ margin: "0px 10px" }}
+              onClick={handleClose}
+              variant="outlined"
+            >
+              Close
+            </Button>
           </Box>
         </Box>
       </Modal>
@@ -91,7 +162,11 @@ function Category() {
           <span>
             <h2>Manage Category</h2>
           </span>
-          <Button variant="contained" onClick={handleModalOpen}>
+          <Button
+            name="add"
+            variant="contained"
+            onClick={handleModelOpen}
+          >
             Add Category
           </Button>
         </CardContent>
@@ -115,16 +190,21 @@ function Category() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
+            {categories.map((category) => (
               <TableRow
-                key={row.name}
+                key={category.id}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
                 <TableCell align="center" component="th" scope="row">
-                  {row.name}
+                  {category.name}
                 </TableCell>
                 <TableCell align="center">
-                  <EditIcon />
+                  <IconButton
+                    id="edit"
+                    onClick={(e) => handleEditCategoryClick(category.id, category.name)}
+                  >
+                    <EditIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

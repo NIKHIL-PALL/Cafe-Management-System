@@ -5,6 +5,7 @@ import {
   CardContent,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Modal,
@@ -20,58 +21,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import EditIcon from "@mui/icons-material/Edit";
-function createData(name, category, description, price) {
-  return { name, category, description, price };
-}
-
-const products = [
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-  createData("Frozen yoghurt", "fruits", "A dklk f jsljl; sdlkjf  fdkld ", 688),
-  createData(
-    "Ice cream sandwich",
-    "vegetables",
-    "The klfdjkl  fhj jdflkfd  sje ;dlkd ",
-    2300
-  ),
-];
+import axios from "axios";
+import { AuthContext } from "../../context/Auth";
 
 const style = {
   position: "absolute",
@@ -87,24 +42,133 @@ const style = {
 
 function ManageProduct() {
   const [open, setOpen] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [currentProductId, setCurrentProductId] = useState();
   const [formData, setFormData] = useState({
-    category : ""
-  })
+    name: "",
+    categoryId: "",
+    price: "",
+    description: "",
+  });
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const auth = useContext(AuthContext);
 
-  const handleCategoryChange = (e) => {
-    setFormData((prev) => ({...prev, category : e.target.value}))
-  }
   const handleModalOpen = () => {
     setOpen(true);
   };
-  const handleAddCategory = () => {
-    console.log("handling adding...");
+  const handleAddProduct = async () => {
+    console.log(formData);
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.userId}`,
+    };
+    await axios
+      .post("http://localhost:5000/product/add", formData, { headers })
+      .then((response) => {
+        console.log(response);
+        auth.setMessage(response.data.message);
+        setFormData({
+          name: "",
+          categoryId: 0,
+          price: "",
+          description: "",
+        });
+        fetchAllProducts();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    handleClose();
   };
   const handleClose = () => {
     setOpen(false);
   };
+const handleDelete = (productId) => {
+  setOpenDelete(true);
+  setCurrentProductId(productId)
+}
+  const handleDeleteProduct = async (id) => {
+    console.log("delete product");
+    const headers = {
+      "Content-Type" : "application/json",
+      "Authorization" : `Bearer ${auth.userId}`
+    }
+    await axios
+      .delete(`http://localhost:5000/product/delete/${currentProductId}`, { headers })
+      .then((response) => {
+        auth.setMessage(response.data.message);
+        fetchAllProducts();
+        setOpenDelete(false);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const fetchAllProducts = async () => {
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.userId}`,
+    };
+    await axios
+      .get("http://localhost:5000/product/get", { headers })
+      .then((respone) => {
+        setProducts(respone.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const fetchAllCategories = async () => {
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.userId}`,
+    };
+    await axios
+      .get("http://localhost:5000/category/get", { headers })
+      .then((response) => {
+        setCategories(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    fetchAllProducts();
+    fetchAllCategories();
+  }, []);
   return (
     <React.Fragment>
+      <Modal
+        open={openDelete}
+        onClose={(e) => setOpenDelete(false)}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Box sx={{ margin: "20px " }}>
+            <Typography variant="h6" component="h2">
+              Are you sure want to delete the product ?
+            </Typography>
+            <Button
+              sx={{ margin: "0px 10px" }}
+              onClick={handleDeleteProduct}
+              variant="contained"
+            >
+              Yes
+            </Button>
+            <Button
+              sx={{ margin: "0px 10px" }}
+              onClick={(e) => setOpenDelete(false)}
+              variant="outlined"
+            >
+              No
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
       <Modal
         open={open}
         onClose={handleClose}
@@ -123,28 +187,45 @@ function ManageProduct() {
                   sx={{ width: "100%" }}
                   variant="outlined"
                   label="Name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                  }
                 ></TextField>
               </Grid>
               <Grid item xs={6}>
                 <TextField
                   sx={{ width: "100%" }}
                   variant="outlined"
+                  value={formData.price}
                   label="Price"
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, price: e.target.value }))
+                  }
                 ></TextField>
               </Grid>
               <Grid item xs={6}>
                 <FormControl fullWidth>
-                  <InputLabel id="demo-simple-select-label">Category</InputLabel>
+                  <InputLabel id="demo-simple-select-label">
+                    Category
+                  </InputLabel>
                   <Select
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
-                    value={formData.category}
+                    value={formData.categoryId}
                     label="Category"
-                    onChange={handleCategoryChange}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        categoryId: e.target.value,
+                      }))
+                    }
                   >
-                    <MenuItem value={10}>Ten</MenuItem>
-                    <MenuItem value={20}>Twenty</MenuItem>
-                    <MenuItem value={30}>Thirty</MenuItem>
+                    {categories.map((category) => (
+                      <MenuItem key={category.id} value={category.id}>
+                        {category.name}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -153,6 +234,13 @@ function ManageProduct() {
                   sx={{ width: "100%" }}
                   variant="outlined"
                   label="Description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
                 ></TextField>
               </Grid>
             </Grid>
@@ -160,7 +248,7 @@ function ManageProduct() {
           <Box sx={{ margin: "5px" }}>
             <Button
               sx={{ margin: "0px 10px" }}
-              onClick={handleAddCategory}
+              onClick={handleAddProduct}
               variant="contained"
             >
               Add
@@ -216,13 +304,13 @@ function ManageProduct() {
           <TableBody>
             {products.map((product) => (
               <TableRow
-                key={product.name}
+                key={product.id}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
                 <TableCell align="center" component="th" scope="row">
                   {product.name}
                 </TableCell>
-                <TableCell align="center">{product.category}</TableCell>
+                <TableCell align="center">{product.categoryName}</TableCell>
                 <TableCell align="center">{product.description}</TableCell>
                 <TableCell align="center">{product.price}</TableCell>
                 <TableCell align="center">
@@ -234,9 +322,15 @@ function ManageProduct() {
                       alignItems: "center",
                     }}
                   >
-                    <EditIcon />
-                    <DeleteIcon />
-                    <Switch />
+                    <IconButton>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={(e) => handleDelete(product.id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                    <IconButton>
+                      <Switch />
+                    </IconButton>
                   </Box>
                 </TableCell>
               </TableRow>

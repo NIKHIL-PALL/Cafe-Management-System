@@ -3,14 +3,12 @@ import { useContext, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
 import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
-import Sidebar from "./Sidebar";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Login from "./utils/Login.jsx";
 import SignUp from "./utils/SignUp.jsx";
 import ForgotPassword from "./ForgotPassword";
@@ -18,16 +16,46 @@ import { AuthContext } from "../context/Auth.jsx";
 import StoreMallDirectoryIcon from "@mui/icons-material/StoreMallDirectory";
 import { Alert } from "@mui/material";
 import Dashboard from "./pages/Dashboard.jsx";
+import LogoutIcon from '@mui/icons-material/Logout';
+import Avatar from "@mui/material/Avatar";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import PersonAdd from "@mui/icons-material/PersonAdd";
+import Settings from "@mui/icons-material/Settings";
+import PasswordIcon from "@mui/icons-material/Password";
+import LogoutForm from "./utils/LogoutForm.jsx";
+import ChangePassword from "./utils/ChangePassword.jsx";
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [showDialog, setShowDialog] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [anchorAccountSettingsEl, setAnchorAccountSettingsEl] =
+    React.useState(null);
+  const openAccountSettings = Boolean(anchorAccountSettingsEl);
+  const handleClickAccountSettings = (event) => {
+    setAnchorAccountSettingsEl(event.currentTarget);
+    console.log("sljlkd");
+  };
+  const handleCloseAccountSettings = () => {
+    console.log("close account settings ");
+    setAnchorAccountSettingsEl(null);
+  };
 
   const auth = useContext(AuthContext);
 
-  console.log(auth.isLoggedIn);
+  console.log(showDialog);
   const handleShowDialog = (value) => {
+    console.log("hsow");
+
     setShowDialog(value);
+  };
+
+  const handleMenuItemClick = (event, value) => {
+    console.log("handle menu item click");
+    setShowDialog(value);
+    handleClickAccountSettings(event);
   };
 
   const handleOpenNavMenu = (event) => {
@@ -165,24 +193,101 @@ function Navbar() {
                 justifyContent: "flex-end",
               }}
             >
-              <Button
-                onClick={(e) => handleShowDialog("login")}
-                sx={{ my: 2, color: "white", display: "block" }}
-              >
-                Login
-              </Button>
-              <Button
-                onClick={(e) => handleShowDialog("signup")}
-                sx={{ my: 2, color: "white", display: "block" }}
-              >
-                SignUp
-              </Button>
-              <Button
-                onClick={(e) => handleShowDialog("forgotPassword")}
-                sx={{ my: 2, color: "white", display: "block" }}
-              >
-                Forgot Password?
-              </Button>
+              {auth.isLoggedIn ? (
+                <span>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <IconButton
+                      onClick={handleClickAccountSettings}
+                      size="small"
+                      sx={{ ml: 2 }}
+                      aria-controls={
+                        openAccountSettings ? "account-menu" : undefined
+                      }
+                      aria-haspopup="true"
+                      aria-expanded={openAccountSettings ? "true" : undefined}
+                    >
+                      <AccountCircleIcon />
+                    </IconButton>
+                  </Box>
+                  <Menu
+                    anchorEl={anchorAccountSettingsEl}
+                    id="account-menu"
+                    open={openAccountSettings}
+                    onClose={handleCloseAccountSettings}
+                    onClick={handleCloseAccountSettings}
+                    PaperProps={{
+                      elevation: 0,
+                      sx: {
+                        overflow: "visible",
+                        filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                        mt: 1.5,
+                        "& .MuiAvatar-root": {
+                          width: 32,
+                          height: 32,
+                          ml: -0.5,
+                          mr: 1,
+                        },
+                        "&::before": {
+                          content: '""',
+                          display: "block",
+                          position: "absolute",
+                          top: 0,
+                          right: 14,
+                          width: 10,
+                          height: 10,
+                          bgcolor: "background.paper",
+                          transform: "translateY(-50%) rotate(45deg)",
+                          zIndex: 0,
+                        },
+                      },
+                    }}
+                    transformOrigin={{ horizontal: "right", vertical: "top" }}
+                    anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                  >
+                    <MenuItem
+                      onClick={(e) => handleMenuItemClick(e, "changePassword")}
+                    >
+                      <ListItemIcon>
+                        <PasswordIcon fontSize="small" />
+                      </ListItemIcon>
+                      Change Password
+                    </MenuItem>
+                    <MenuItem onClick={(e) => handleMenuItemClick(e, "logout")}>
+                      <ListItemIcon>
+                        <LogoutIcon />
+                      </ListItemIcon>
+                      Logout
+                    </MenuItem>
+                  </Menu>
+                </span>
+              ) : (
+                <>
+                  <Button
+                    onClick={(e) => handleShowDialog("login")}
+                    sx={{ my: 2, color: "white", display: "block" }}
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    onClick={(e) => handleShowDialog("signup")}
+                    sx={{ my: 2, color: "white", display: "block" }}
+                  >
+                    SignUp
+                  </Button>
+                  <Button
+                    onClick={(e) => handleShowDialog("forgotPassword")}
+                    sx={{ my: 2, color: "white", display: "block" }}
+                  >
+                    Forgot Password?
+                  </Button>
+                </>
+              )}
             </Box>
           </Toolbar>
         </Container>
@@ -197,6 +302,10 @@ function Navbar() {
       {showDialog === "forgotPassword" && (
         <ForgotPassword setShowDialog={setShowDialog} />
       )}
+      {showDialog === "changePassword" && (
+        <ChangePassword setShowDialog={setShowDialog} />
+      )}
+      {showDialog === "logout" && <LogoutForm setShowDialog={setShowDialog} />}
       {auth.isLoggedIn && <Dashboard open={open} setOpen={setOpen} />}
     </React.Fragment>
   );

@@ -1,5 +1,4 @@
-import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
@@ -24,6 +23,8 @@ import Category from "./Category";
 import ManageProduct from "./ManageProduct";
 import ManageOrder from "./ManageOrder";
 import DashboardCard from "./DashboardCard";
+import axios from "axios";
+import { AuthContext } from "../../context/Auth";
 const drawerWidth = 300;
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
@@ -54,8 +55,32 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   justifyContent: "flex-end",
 }));
 
-export default function Dashboard({open, setOpen}) {
-    const [itemSelected, setItemSelected] = React.useState(0);
+export default function Dashboard({ open, setOpen }) {
+  const [itemSelected, setItemSelected] = useState(0);
+  const [itemsCount, setItemsCount] = useState({
+    billCount : 0,
+    categoryCount : 0,
+    productCount : 0,
+  });
+  const auth = useContext(AuthContext)
+  console.log(itemsCount)
+  useEffect(() => {
+    async function loadData() {
+      const headers = {
+        "Content-Type " : "application/json",
+        "Authorization " : `Bearer ${auth.userId}`
+      }
+      await axios
+        .get("http://localhost:5000/dashboard/details", {headers})
+        .then((response) => {
+          setItemsCount(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+    loadData();
+  }, []);
 
   const theme = useTheme();
 
@@ -92,7 +117,10 @@ export default function Dashboard({open, setOpen}) {
         <Divider />
         <List>
           <ListItem>
-            <ListItemButton selected  ={itemSelected === 0} onClick={(e) => setItemSelected(0)}>
+            <ListItemButton
+              selected={itemSelected === 0}
+              onClick={(e) => setItemSelected(0)}
+            >
               <ListItemIcon>
                 <DashboardIcon />
               </ListItemIcon>
@@ -101,8 +129,11 @@ export default function Dashboard({open, setOpen}) {
           </ListItem>
         </List>
         <List>
-          <ListItem >
-            <ListItemButton  selected  ={itemSelected === 1} onClick={(e) => setItemSelected(1)}>
+          <ListItem>
+            <ListItemButton
+              selected={itemSelected === 1}
+              onClick={(e) => setItemSelected(1)}
+            >
               <ListItemIcon>
                 <CategoryIcon />
               </ListItemIcon>
@@ -112,7 +143,10 @@ export default function Dashboard({open, setOpen}) {
         </List>
         <List>
           <ListItem>
-            <ListItemButton  selected  ={itemSelected === 2} onClick={(e) => setItemSelected(2)}>
+            <ListItemButton
+              selected={itemSelected === 2}
+              onClick={(e) => setItemSelected(2)}
+            >
               <ListItemIcon>
                 <InventoryIcon />
               </ListItemIcon>
@@ -122,7 +156,10 @@ export default function Dashboard({open, setOpen}) {
         </List>
         <List>
           <ListItem>
-            <ListItemButton  selected  ={itemSelected === 3} onClick={(e) => setItemSelected(3)}>
+            <ListItemButton
+              selected={itemSelected === 3}
+              onClick={(e) => setItemSelected(3)}
+            >
               <ListItemIcon>
                 <DeliveryDiningIcon />
               </ListItemIcon>
@@ -132,7 +169,10 @@ export default function Dashboard({open, setOpen}) {
         </List>
         <List>
           <ListItem>
-            <ListItemButton  selected  ={itemSelected === 4} onClick={(e) => setItemSelected(4)}>
+            <ListItemButton
+              selected={itemSelected === 4}
+              onClick={(e) => setItemSelected(4)}
+            >
               <ListItemIcon>
                 <ArticleIcon />
               </ListItemIcon>
@@ -142,7 +182,10 @@ export default function Dashboard({open, setOpen}) {
         </List>
         <List>
           <ListItem>
-            <ListItemButton  selected  ={itemSelected === 5} onClick={(e) => setItemSelected(5)}>
+            <ListItemButton
+              selected={itemSelected === 5}
+              onClick={(e) => setItemSelected(5)}
+            >
               <ListItemIcon>
                 <PeopleAltIcon />
               </ListItemIcon>
@@ -152,26 +195,34 @@ export default function Dashboard({open, setOpen}) {
         </List>
       </Drawer>
       <Main open={open}>
-        { itemSelected === 0 && <Card>
-          <CardHeader title="Dashboard"></CardHeader>
-          <Divider></Divider>
-          <CardContent  sx={{display : "flex", justifyContent : "space-around", flexWrap : "wrap"}}>
-            {[{name : "Category" , count : 5}, {name : "Product", count : 7}, {name : "Bill", count : 9}].map((item, index) => (
-                <DashboardCard key={index} text={item.name} count={item.count} />
-            )) }
-            
-          </CardContent>
-        </Card>}
-        {itemSelected=== 1 && 
-        <Category/>
-        }
-        {itemSelected=== 2 && 
-        <ManageProduct/>
-        }
-        {itemSelected=== 3 && 
-        <ManageOrder/>
-        }
-
+        {itemSelected === 0 && (
+          <Card>
+            <CardHeader title="Dashboard"></CardHeader>
+            <Divider></Divider>
+            <CardContent
+              sx={{
+                display: "flex",
+                justifyContent: "space-around",
+                flexWrap: "wrap",
+              }}
+            >
+              {[
+                { name: "Category", count:itemsCount.categoryCount },
+                { name: "Product", count: itemsCount.productCount },
+                { name: "Bill", count: itemsCount.billCount },
+              ].map((item, index) => (
+                <DashboardCard
+                  key={index}
+                  text={item.name}
+                  count={item.count}
+                />
+              ))}
+            </CardContent>
+          </Card>
+        )}
+        {itemSelected === 1 && <Category />}
+        {itemSelected === 2 && <ManageProduct />}
+        {itemSelected === 3 && <ManageOrder />}
       </Main>
     </Box>
   );

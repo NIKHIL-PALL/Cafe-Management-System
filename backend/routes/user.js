@@ -173,7 +173,7 @@ router.patch('/changePassword',authenticateToken, (req, res) => {
     }
     else {
       if(results.length <= 0 ) {
-        return res.status(400).json({message : "Incorrect Email or Password"});
+        return res.status(404).json({message : "Incorrect Old Password"});
       }
       else if(results[0].password == user.oldPassword) {
         query = `UPDATE user SET password = ? WHERE email = ?`;
@@ -192,7 +192,7 @@ router.patch('/changePassword',authenticateToken, (req, res) => {
         })
       }
       else{
-        return res.status(200).json({message : "Something went wrong."})
+        return res.status(500).json({message : "Something went wrong."})
       }
     }
   })
