@@ -8,7 +8,6 @@ const isValidToken = (token) => {
     try{
 
         const decoded = jwtDecode(token);
-        console.log(decoded);
         const currentTime = Date.now() / 1000;
         return decoded.exp < currentTime;
     }

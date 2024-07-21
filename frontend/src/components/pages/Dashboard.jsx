@@ -25,6 +25,8 @@ import ManageOrder from "./ManageOrder";
 import DashboardCard from "./DashboardCard";
 import axios from "axios";
 import { AuthContext } from "../../context/Auth";
+import ManageBill from "./ManageBill";
+import ManageUsers from "./ManageUsers";
 const drawerWidth = 300;
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
@@ -63,22 +65,22 @@ export default function Dashboard({ open, setOpen }) {
     productCount : 0,
   });
   const auth = useContext(AuthContext)
-  console.log(itemsCount)
-  useEffect(() => {
-    async function loadData() {
-      const headers = {
-        "Content-Type " : "application/json",
-        "Authorization " : `Bearer ${auth.userId}`
-      }
-      await axios
-        .get("http://localhost:5000/dashboard/details", {headers})
-        .then((response) => {
-          setItemsCount(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+  async function loadData() {
+    const headers = {
+      "Content-Type " : "application/json",
+      "Authorization " : `Bearer ${auth.userId}`
     }
+    await axios
+      .get("http://localhost:5000/dashboard/details", {headers})
+      .then((response) => {
+        setItemsCount(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  useEffect(() => {
+   
     loadData();
   }, []);
 
@@ -223,6 +225,8 @@ export default function Dashboard({ open, setOpen }) {
         {itemSelected === 1 && <Category />}
         {itemSelected === 2 && <ManageProduct />}
         {itemSelected === 3 && <ManageOrder />}
+        {itemSelected === 4 && <ManageBill/>}
+        {itemSelected === 5 && <ManageUsers/>}
       </Main>
     </Box>
   );

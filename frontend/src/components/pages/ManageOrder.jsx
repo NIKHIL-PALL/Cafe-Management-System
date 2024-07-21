@@ -11,7 +11,6 @@ import {
   Modal,
   Paper,
   Select,
-  
   Table,
   TableBody,
   TableCell,
@@ -21,136 +20,131 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
-
-function createData(name, category, quantity, price) {
-  return { name, category, quantity, price };
-}
-
-const products = [
-  createData("Frozen yoghurt", "fruits", 4, 688),
-  createData("Frozen yoghurt", "fruits", 4, 688),
-  createData("Frozen yoghurt", "fruits", 4, 688),
-  createData("Frozen yoghurt", "fruits", 4, 688),
-  createData("Frozen yoghurt", "fruits", 4, 688),
-  createData("Frozen yoghurt", "fruits", 4, 688),
-  createData("Frozen yoghurt", "fruits", 4, 688),
-];
-
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 700,
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  borderRadius: "8px",
-  p: 4,
-};
+import axios from "axios";
+import { AuthContext } from "../../context/Auth";
 
 function ManageOrder() {
-  const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    paymentMethod: "",
+  const [orderProduct, setOrderProduct] = useState({
+    categoryId: "",
     category: "",
-    product: "",
+    name: "",
+    price: "",
+    quantity: 1,
+    total: "",
   });
+  const [customerDetails, setCustomerDetails] = useState({
+    name: "",
+    email: "",
+    contactNumber: "",
+    totalAmount: 3000,
+    paymentMethod: "",
+  });
+  const [categories, setCategories] = useState([]);
+  const [availableProducts, setAvailableProducts] = useState([]);
+  const [orderedProducts, setOrderedProducts] = useState([]);
+  const auth = useContext(AuthContext);
 
-  const handlepaymentMethodChange = (e) => {
-    setFormData((prev) => ({ ...prev, paymentMethod: e.target.value }));
+  const handleAddProduct = () => {
+    setOrderedProducts((prev) => [...prev, orderProduct]);
   };
-  const handleCategoryChange = (e) => {
-    setFormData((prev) => ({ ...prev, category: e.target.value }));
+  const handleGetBill = async () => {
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.userId}`,
+    };
+    console.log("order product " + orderProduct);
+    console.log("customer details " + customerDetails);
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/bill/generateBill",
+        {
+          ...customerDetails,
+          productDetails: orderedProducts,
+        },
+        { headers }
+      );
+
+      const responseData = response.data;
+      console.log("resp uuid: " + responseData.uuid);
+
+      const pdfResponse = await axios.post(
+        "http://localhost:5000/bill/getPdf",
+        {
+          ...customerDetails,
+          productDetails: orderedProducts,
+          uuid: responseData.uuid,
+        },
+        { headers, responseType: "blob" }
+      );
+
+      // Create a URL for the PDF blob and trigger the download
+      const url = window.URL.createObjectURL(
+        new Blob([pdfResponse.data], { type: "application/pdf" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "invoice.pdf"); // Set the file name
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error in handleGetBill:", error);
+    }
   };
-  const handleProductChange = (e) => {
-    setFormData((prev) => ({ ...prev, product: e.target.value }));
+
+  const fetchAllProducts = async () => {
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.userId}`,
+    };
+    await axios
+      .get(
+        `http://localhost:5000/product/getProductByCategory/${orderProduct.categoryId}`,
+        { headers }
+      )
+      .then((response) => {
+        setAvailableProducts(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
-  const handleModalOpen = () => {
-    setOpen(true);
+
+  const fetchAllCategories = async () => {
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.userId}`,
+    };
+    await axios
+      .get("http://localhost:5000/category/get", { headers })
+      .then((response) => {
+        setCategories(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
-  const handleAddCategory = () => {
-    console.log("handling adding...");
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
+
+  useEffect(() => {
+    const category = categories.find(
+      (category) => category.id === orderProduct.categoryId
+    );
+    setOrderProduct((prev) => ({ ...prev, category: category?.name }));
+  }, [orderProduct.categoryId]);
+
+  useEffect(() => {
+    fetchAllCategories();
+  }, []);
+  useEffect(() => {
+    if (orderProduct.categoryId) {
+      fetchAllProducts();
+    }
+  }, [orderProduct.categoryId]);
   return (
     <React.Fragment>
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={style}>
-          <Box sx={{ margin: "20px " }}>
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Add Product
-            </Typography>
-
-            <Grid container spacing={2} sx={{ margin: "20px 0px" }}>
-              <Grid item xs={8} md={12}>
-                <TextField
-                  sx={{ width: "100%" }}
-                  variant="outlined"
-                  label="Name"
-                ></TextField>
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  sx={{ width: "100%" }}
-                  variant="outlined"
-                  label="Price"
-                ></TextField>
-              </Grid>
-              <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel id="demo-simple-select-label">
-                    Category
-                  </InputLabel>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    // value={formData.category}
-                    label="Category"
-                    // onChange={handleCategoryChange}
-                  >
-                    <MenuItem value={10}>Ten</MenuItem>
-                    <MenuItem value={20}>Twenty</MenuItem>
-                    <MenuItem value={30}>Thirty</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  sx={{ width: "100%" }}
-                  variant="outlined"
-                  label="Description"
-                ></TextField>
-              </Grid>
-            </Grid>
-          </Box>
-          <Box sx={{ margin: "5px" }}>
-            <Button
-              sx={{ margin: "0px 10px" }}
-              onClick={handleAddCategory}
-              variant="contained"
-            >
-              Add
-            </Button>
-            <Button
-              sx={{ margin: "0px 10px" }}
-              onClick={handleClose}
-              variant="outlined"
-            >
-              Close
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-
+      {/* Bill section  */}
       <Card sx={{ margin: "10px 0px" }}>
         <CardContent
           sx={{
@@ -162,11 +156,13 @@ function ManageOrder() {
           <span>
             <h2>Manage Order</h2>
           </span>
-          <Button variant="contained" onClick={handleModalOpen}>
+          <Button variant="contained" onClick={handleGetBill}>
             Submit & Bill
           </Button>
         </CardContent>
       </Card>
+
+      {/* Customer Details */}
       <Card sx={{ margin: "10px 0px" }}>
         <CardHeader title="Customer Details" />
         <CardContent
@@ -183,6 +179,13 @@ function ManageOrder() {
                 id="outlined-basic"
                 label="Name"
                 variant="outlined"
+                value={customerDetails.name}
+                onChange={(e) =>
+                  setCustomerDetails((prev) => ({
+                    ...prev,
+                    name: e.target.value,
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12} md={3}>
@@ -190,6 +193,13 @@ function ManageOrder() {
                 sx={{ width: "100%" }}
                 label="Email"
                 variant="outlined"
+                value={customerDetails.email}
+                onChange={(e) =>
+                  setCustomerDetails((prev) => ({
+                    ...prev,
+                    email: e.target.value,
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12} md={3}>
@@ -198,6 +208,13 @@ function ManageOrder() {
                 id="outlined-basic"
                 label="Contact Number"
                 variant="outlined"
+                value={customerDetails.contactNumber}
+                onChange={(e) =>
+                  setCustomerDetails((prev) => ({
+                    ...prev,
+                    contactNumber: e.target.value,
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12} md={3}>
@@ -208,13 +225,18 @@ function ManageOrder() {
                 <Select
                   id="payment-method-select"
                   labelId="payment-method-label"
-                  value={formData.paymentMethod}
+                  value={customerDetails.paymentMethod}
                   label="Payment Method"
-                  onChange={handlepaymentMethodChange}
+                  onChange={(e) =>
+                    setCustomerDetails((prev) => ({
+                      ...prev,
+                      paymentMethod: e.target.value,
+                    }))
+                  }
                 >
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
+                  <MenuItem value={"Cash"}>Cash</MenuItem>
+                  <MenuItem value={"Credit Card"}>Credit Card</MenuItem>
+                  <MenuItem value={"Debit Card"}>Debit Card</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -222,6 +244,7 @@ function ManageOrder() {
         </CardContent>
       </Card>
 
+      {/* Product Details  */}
       <Card sx={{ margin: "10px 0px" }}>
         <CardHeader title="Select Product" />
         <CardContent
@@ -233,78 +256,119 @@ function ManageOrder() {
           }}
         >
           <Grid container spacing={5}>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={12} md={2.2}>
               <FormControl fullWidth>
                 <InputLabel id="category-label">Category</InputLabel>
                 <Select
                   id="category-select"
                   labelId="category-label"
-                  value={formData.category}
-                  label="Payment Method"
-                  onChange={handleCategoryChange}
+                  value={orderProduct.categoryId}
+                  label="Category"
+                  onChange={(e) =>
+                    setOrderProduct((prev) => ({
+                      ...prev,
+                      categoryId: e.target.value,
+                    }))
+                  }
                 >
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
+                  {categories.map((category) => (
+                    <MenuItem value={category.id}>{category.name}</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={12} md={2.2}>
               <FormControl fullWidth>
                 <InputLabel id="product-label">Product</InputLabel>
                 <Select
                   id="product-select"
                   labelId="product-label"
-                  value={formData.product}
-                  label="Payment Method"
-                  onChange={handleProductChange}
+                  value={orderProduct.name}
+                  label="Product"
+                  onChange={(e) =>
+                    setOrderProduct((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
                 >
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
+                  {availableProducts.length === 0 ? (
+                    <MenuItem disabled>No products available</MenuItem>
+                  ) : (
+                    availableProducts.map((product) => (
+                      <MenuItem key={product.id} value={product.name}>
+                        {product.name}
+                      </MenuItem>
+                    ))
+                  )}
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={12} md={2.2}>
               <TextField
                 sx={{ width: "100%" }}
                 id="outlined-basic"
                 label="Price"
                 variant="outlined"
+                value={orderProduct.price}
+                onChange={(e) =>
+                  setOrderProduct((prev) => ({
+                    ...prev,
+                    price: e.target.value,
+                  }))
+                }
               />
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={12} md={2.2}>
               <TextField
                 sx={{ width: "100%" }}
                 label="Quantity"
                 variant="outlined"
+                value={orderProduct.quantity}
+                onChange={(e) =>
+                  setOrderProduct((prev) => ({
+                    ...prev,
+                    quantity: e.target.value,
+                  }))
+                }
               />
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={12} md={2.2}>
               <TextField
                 sx={{ width: "100%" }}
                 id="outlined-basic"
                 label="Total"
+                disabled
                 variant="outlined"
+                value={orderProduct.quantity * orderProduct.price}
+                onChange={(e) =>
+                  setOrderProduct((prev) => ({
+                    ...prev,
+                    total: e.target.value,
+                  }))
+                }
               />
             </Grid>
           </Grid>
           <Box
-          component={"div"}
-
+            component={"div"}
             sx={{
-              width : "100%",
-              marginTop : "10px",
+              width: "100%",
+              marginTop: "10px",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
             }}
           >
-            <Button sx={{ display: "inline-block" }} variant="contained">
+            <Button
+              sx={{ display: "inline-block" }}
+              variant="contained"
+              onClick={handleAddProduct}
+            >
               Add
             </Button>
             <Button variant="contained" disabled>
-              Total Amount : {99899}{" "}
+              Total Amount : {customerDetails.totalAmount}
             </Button>
           </Box>
         </CardContent>
@@ -314,7 +378,7 @@ function ManageOrder() {
           <TableHead>
             <TableRow>
               <TableCell align="center">Name</TableCell>
-              <TableCell align="center">Category</TableCell>
+              <TableCell align="center">CategoryId</TableCell>
               <TableCell align="center">Price</TableCell>
               <TableCell align="center">Quantity</TableCell>
               <TableCell align="center">Total</TableCell>
@@ -322,9 +386,9 @@ function ManageOrder() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.map((product) => (
+            {orderedProducts.map((product, index) => (
               <TableRow
-                key={product.name}
+                key={index}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
                 <TableCell align="center" component="th" scope="row">

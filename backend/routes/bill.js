@@ -14,7 +14,8 @@ const __dirname = path.dirname(__filename);
 router.post("/generateBill", authenticateToken, (req, res) => {
   const generatedUuid = v1();
   let orderDetails = req.body;
-  let productDetailsReport = JSON.parse(orderDetails.productDetails);
+  console.log(orderDetails.productDetails)
+  let productDetailsReport = orderDetails.productDetails;
   let query = `INSERT INTO bill (name, uuid, email, contactNumber, paymentMethod, total,createdBy, product_details ) VALUES(?, ?, ?,?,?,?,?,?)`;
   db.query(
     query,
@@ -25,7 +26,7 @@ router.post("/generateBill", authenticateToken, (req, res) => {
       orderDetails.contactNumber,
       orderDetails.paymentMethod,
       orderDetails.totalAmount,
-      res.locals.email,
+      res.locals.email, 
       JSON.stringify(productDetailsReport),
     ],
     (err, results) => {
@@ -76,7 +77,7 @@ router.post("/getPdf", authenticateToken, (req, res) => {
     res.contentType("application/pdf");
     fs.createReadStream(pdfPath).pipe(res);
   } else {
-    let productDetailsReport = JSON.parse(orderDetails.productDetails);
+    let productDetailsReport = orderDetails.productDetails;
     ejs.renderFile(
       path.join(__dirname, "", "report.ejs"),
       {

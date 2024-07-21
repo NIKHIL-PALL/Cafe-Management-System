@@ -16,14 +16,10 @@ import { AuthContext } from "../context/Auth.jsx";
 import StoreMallDirectoryIcon from "@mui/icons-material/StoreMallDirectory";
 import { Alert } from "@mui/material";
 import Dashboard from "./pages/Dashboard.jsx";
-import LogoutIcon from '@mui/icons-material/Logout';
-import Avatar from "@mui/material/Avatar";
+import LogoutIcon from "@mui/icons-material/Logout";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import PersonAdd from "@mui/icons-material/PersonAdd";
-import Settings from "@mui/icons-material/Settings";
 import PasswordIcon from "@mui/icons-material/Password";
 import LogoutForm from "./utils/LogoutForm.jsx";
 import ChangePassword from "./utils/ChangePassword.jsx";
@@ -36,24 +32,18 @@ function Navbar() {
   const openAccountSettings = Boolean(anchorAccountSettingsEl);
   const handleClickAccountSettings = (event) => {
     setAnchorAccountSettingsEl(event.currentTarget);
-    console.log("sljlkd");
   };
   const handleCloseAccountSettings = () => {
-    console.log("close account settings ");
     setAnchorAccountSettingsEl(null);
   };
 
   const auth = useContext(AuthContext);
 
-  console.log(showDialog);
   const handleShowDialog = (value) => {
-    console.log("hsow");
-
     setShowDialog(value);
   };
 
   const handleMenuItemClick = (event, value) => {
-    console.log("handle menu item click");
     setShowDialog(value);
     handleClickAccountSettings(event);
   };
@@ -293,7 +283,17 @@ function Navbar() {
         </Container>
       </AppBar>
       {auth.message && (
-        <Alert severity="success" onClose={() => auth.setMessage("")}>
+        <Alert
+          sx={{
+            position: "fixed",
+            zIndex: 99999999,
+            top: "60px",
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+          severity="success"
+          onClose={() => auth.setMessage("")}
+        >
           {auth.message}
         </Alert>
       )}

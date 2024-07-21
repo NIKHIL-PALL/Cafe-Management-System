@@ -93,7 +93,6 @@ function Category() {
     await axios
       .get("http://localhost:5000/category/get", { headers })
       .then((response) => {
-        console.log(response);
         setFormData({ name: "" });
         setCategories(response.data);
       })

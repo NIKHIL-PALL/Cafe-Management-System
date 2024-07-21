@@ -52,50 +52,91 @@ function ManageProduct() {
   });
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [isEditMode, setIsEditMode] = useState(false);
   const auth = useContext(AuthContext);
 
   const handleModalOpen = () => {
     setOpen(true);
   };
-  const handleAddProduct = async () => {
+  const handleSaveProduct = async () => {
     console.log(formData);
     const headers = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${auth.userId}`,
     };
-    await axios
-      .post("http://localhost:5000/product/add", formData, { headers })
-      .then((response) => {
-        console.log(response);
-        auth.setMessage(response.data.message);
-        setFormData({
-          name: "",
-          categoryId: 0,
-          price: "",
-          description: "",
+    if (isEditMode) {
+      await axios
+        .patch("http://localhost:5000/product/update", formData, { headers })
+        .then((response) => {
+          auth.setMessage(response.data.message);
+          fetchAllProducts();
+        })
+        .catch((error) => {
+          console.log(error);
         });
-        fetchAllProducts();
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+      setIsEditMode(false);
+    } else {
+      await axios
+        .post("http://localhost:5000/product/add", formData, { headers })
+        .then((response) => {
+          console.log(response);
+          auth.setMessage(response.data.message);
+
+          fetchAllProducts();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+    setFormData({
+      name: "",
+      categoryId: "",
+      price: "",
+      description: "",
+    });
     handleClose();
   };
   const handleClose = () => {
     setOpen(false);
   };
-const handleDelete = (productId) => {
-  setOpenDelete(true);
-  setCurrentProductId(productId)
-}
-  const handleDeleteProduct = async (id) => {
-    console.log("delete product");
+  const handleDelete = (productId) => {
+    setOpenDelete(true);
+    setCurrentProductId(productId);
+  };
+  const handleEditProduct = (product) => {
+    setFormData(product);
+    setIsEditMode(true);
+    setOpen(true);
+  };
+  const handleUpdateStatus = async (productId, status) => {
     const headers = {
       "Content-Type" : "application/json",
       "Authorization" : `Bearer ${auth.userId}`
     }
     await axios
-      .delete(`http://localhost:5000/product/delete/${currentProductId}`, { headers })
+      .patch(
+        "http://localhost:5000/product/updateStatus",
+        { id: productId, status },
+        { headers }
+      )
+      .then((response) => {
+        auth.setMessage(response.data.message);
+        fetchAllProducts();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const handleDeleteProduct = async (id) => {
+    console.log("delete product");
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.userId}`,
+    };
+    await axios
+      .delete(`http://localhost:5000/product/delete/${currentProductId}`, {
+        headers,
+      })
       .then((response) => {
         auth.setMessage(response.data.message);
         fetchAllProducts();
@@ -178,7 +219,7 @@ const handleDelete = (productId) => {
         <Box sx={style}>
           <Box sx={{ margin: "20px " }}>
             <Typography id="modal-modal-title" variant="h6" component="h2">
-              Add Product
+              {isEditMode ? "Update" : "Add"} Product
             </Typography>
 
             <Grid container spacing={2} sx={{ margin: "20px 0px" }}>
@@ -248,10 +289,10 @@ const handleDelete = (productId) => {
           <Box sx={{ margin: "5px" }}>
             <Button
               sx={{ margin: "0px 10px" }}
-              onClick={handleAddProduct}
+              onClick={handleSaveProduct}
               variant="contained"
             >
-              Add
+              {isEditMode ? "Update" : "Add"}
             </Button>
             <Button
               sx={{ margin: "0px 10px" }}
@@ -322,14 +363,22 @@ const handleDelete = (productId) => {
                       alignItems: "center",
                     }}
                   >
-                    <IconButton>
+                    <IconButton onClick={(e) => handleEditProduct(product)}>
                       <EditIcon />
                     </IconButton>
                     <IconButton onClick={(e) => handleDelete(product.id)}>
                       <DeleteIcon />
                     </IconButton>
                     <IconButton>
-                      <Switch />
+                      <Switch
+                        onChange={(e) =>
+                          handleUpdateStatus(
+                            product.id,
+                            !Boolean(Number(product.status))
+                          )
+                        }
+                        checked={Boolean(Number(product.status))}
+                      />
                     </IconButton>
                   </Box>
                 </TableCell>
